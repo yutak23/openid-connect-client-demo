@@ -5,7 +5,9 @@
 	"repository": "git@github.com:yuta-katayama-23/openid-connect-client-demo.git",
 	"author": "yuta-katayama-23",
 	"license": "MIT",
-	"dependencies": {},
+	"dependencies": {
+		"axios": "^0.25.0"
+	},
 	"devDependencies": {
 		"@babel/core": "^7.16.12",
 		"@babel/preset-env": "^7.16.11",

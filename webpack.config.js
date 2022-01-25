@@ -9,7 +9,8 @@ module.exports = {
 	mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
 	name: 'openid-connect-client-demo',
 	entry: {
-		index: './src/index.js'
+		'auth-request': './src/auth-request.js',
+		server: './src/server'
 	},
 	output: {
 		path: path.resolve(__dirname, 'dist'),
