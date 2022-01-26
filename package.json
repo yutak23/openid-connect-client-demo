@@ -6,7 +6,9 @@
 	"author": "yuta-katayama-23",
 	"license": "MIT",
 	"dependencies": {
-		"axios": "^0.25.0"
+		"axios": "^0.25.0",
+		"config": "^3.3.7",
+		"qs": "^6.10.3"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.16.12",
