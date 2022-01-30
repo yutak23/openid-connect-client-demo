@@ -13,16 +13,6 @@
 			"preLaunchTask": "build for debug",
 			"outFiles": ["${workspaceFolder}/dist/**/*.js"],
 			"envFile": "${workspaceFolder}/.env"
-		},
-		{
-			"type": "node",
-			"request": "launch",
-			"name": "For Auth Request",
-			"skipFiles": ["<node_internals>/**"],
-			"program": "${workspaceFolder}/dist/auth-request.js",
-			"preLaunchTask": "build for debug",
-			"outFiles": ["${workspaceFolder}/dist/**/*.js"],
-			"envFile": "${workspaceFolder}/.env"
 		}
 	]
 }
