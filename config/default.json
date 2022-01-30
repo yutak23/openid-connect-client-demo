@@ -1,6 +1,6 @@
 {
 	"authRequest": {
-		"scopes": ["https://www.googleapis.com/auth/calendar.readonly", "openid"]
+		"scopes": ["https://www.googleapis.com/auth/calendar.readonly"]
 	},
 	"redirectUri": "https://example.com:8080/oauth2/callback"
 }
