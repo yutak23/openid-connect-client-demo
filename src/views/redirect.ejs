@@ -61,26 +61,62 @@
 			</v-navigation-drawer>
 
 			<v-main>
-				<v-container class="fill-height justify-center">
-					<v-card>
-						<form action="/begin" method="GET">
-							<v-card-title>
-								Google Calendarとの連携（認可リクエストを行う）
-							</v-card-title>
-							<v-card-text>
-								<p>（例として…）</p>
-								<p>
-									Google Calendarとの連携を行うには、連携をクリックしてください
-								</p>
-							</v-card-text>
-							<v-card-actions>
-								<v-spacer></v-spacer>
-								<v-btn type="submit" color="primary">
-									連携する（認可リクエスト送る）
-								</v-btn>
-							</v-card-actions>
-						</form>
-					</v-card>
+				<v-container>
+					<v-row>
+						<v-col cols="8">
+							<v-card>
+								<v-card-title>
+									Google Calendarへのアクセストークン
+								</v-card-title>
+								<v-card-text>
+									<v-simple-table>
+										<template v-slot:default>
+											<thead>
+												<tr>
+													<th class="text-left">key</th>
+													<th class="text-left">value</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr>
+													<td>アクセストークン（access_token）</td>
+													<td><%= accessToken %></td>
+												</tr>
+												<tr>
+													<td>有効期間（expires_in）（単位は秒）</td>
+													<td><%= expiresIn %></td>
+												</tr>
+												<tr>
+													<td>スコープ（scope）</td>
+													<td><%= scope %></td>
+												</tr>
+												<tr>
+													<td>トークン種別（token_type）</td>
+													<td><%= tokenType %></td>
+												</tr>
+											</tbody>
+										</template>
+									</v-simple-table>
+								</v-card-text>
+								<v-card-actions>
+									<v-spacer></v-spacer>
+									<v-btn color="primary" @click="getCalendarList">
+										実際にAPIを実行
+									</v-btn>
+								</v-card-actions>
+							</v-card>
+						</v-col>
+						<v-col cols="8" v-if="items">
+							<v-card>
+								<v-card-title> CalendarList: listの結果 </v-card-title>
+								<v-card-text>
+									<p v-for="item of items">
+										{{ item.summary }}：{{ item.description }}
+									</p>
+								</v-card-text>
+							</v-card>
+						</v-col>
+					</v-row>
 				</v-container>
 			</v-main>
 			<v-footer app padless>
@@ -99,8 +135,21 @@
 				vuetify: new Vuetify(),
 				data: () => ({
 					drawer: false,
-					dumyMenus: ['Foo', 'Bar', 'Fizz', 'Buzz']
-				})
+					dumyMenus: ['Foo', 'Bar', 'Fizz', 'Buzz'],
+					items: null
+				}),
+				methods: {
+					async getCalendarList() {
+						try {
+							const response = await fetch('/calendarList', { method: 'GET' });
+							const { items } = await response.json();
+							this.items = items;
+							console.log(this.items);
+						} catch (error) {
+							console.log(error);
+						}
+					}
+				}
 			});
 		</script>
 	</body>
