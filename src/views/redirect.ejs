@@ -53,7 +53,7 @@
 			<v-navigation-drawer v-model="drawer" app clipped bottom>
 				<v-list dense>
 					<v-list-item-group>
-						<v-list-item v-for="menu of dumyMenus">
+						<v-list-item v-for="menu of dumyMenus" :key="menu">
 							<v-list-item-title>{{ menu }}</v-list-item-title>
 						</v-list-item>
 					</v-list-item-group>
