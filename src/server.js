@@ -13,6 +13,8 @@ import expressSession from 'express-session';
 import connectRedis from 'connect-redis';
 import Redis from 'ioredis';
 
+import { generators } from 'openid-client';
+
 const callback = new URL(config.get('redirectUri'));
 
 const app = express();
@@ -49,13 +51,19 @@ app.get('/', (req, res) => {
 });
 
 app.get('/begin', async (req, res) => {
+	const { session } = req;
+
 	const { data: openidConfig } = await axios.get(config.get('discovery'));
+
+	const state = generators.state();
+	session.state = state;
 
 	const params = {
 		client_id: process.env.CLIENT_ID,
 		response_type: 'code',
 		scope: config.get('authRequest.scopes').join(' '),
-		redirect_uri: config.get('redirectUri')
+		redirect_uri: config.get('redirectUri'),
+		state
 	};
 
 	res.redirect(
@@ -66,8 +74,10 @@ app.get('/begin', async (req, res) => {
 app.get('/oauth2/callback', async (req, res) => {
 	const {
 		session,
-		query: { code }
+		query: { code, state }
 	} = req;
+
+	if (state !== session.state) throw new Error('Invalid state.');
 
 	try {
 		const { data: openidConfig } = await axios.get(config.get('discovery'));
