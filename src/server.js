@@ -56,14 +56,19 @@ app.get('/begin', async (req, res) => {
 	const { data: openidConfig } = await axios.get(config.get('discovery'));
 
 	const state = generators.state();
+	const codeVerifier = generators.codeVerifier();
+	const codeChallenge = generators.codeChallenge(codeVerifier);
 	session.state = state;
+	session.codeVerifier = codeVerifier;
 
 	const params = {
 		client_id: process.env.CLIENT_ID,
 		response_type: 'code',
 		scope: config.get('authRequest.scopes').join(' '),
 		redirect_uri: config.get('redirectUri'),
-		state
+		state,
+		code_challenge: codeChallenge,
+		code_challenge_method: 'S256'
 	};
 
 	res.redirect(
@@ -88,6 +93,7 @@ app.get('/oauth2/callback', async (req, res) => {
 		params.append('grant_type', 'authorization_code');
 		params.append('code', code);
 		params.append('redirect_uri', config.get('redirectUri'));
+		params.append('code_verifier', session.codeVerifier);
 
 		const { data } = await axios.post(openidConfig.token_endpoint, params);
 		const camelCaseData = camelcaseKeys(data);
