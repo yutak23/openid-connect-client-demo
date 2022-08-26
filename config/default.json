@@ -1,0 +1,20 @@
+{
+	"discovery": "https://accounts.google.com/.well-known/openid-configuration",
+	"authRequest": {
+		"scopes": [
+			"https://www.googleapis.com/auth/calendar.readonly",
+			"https://www.googleapis.com/auth/calendar"
+		]
+	},
+	"redirectUri": "https://example.com:8080/oauth2/callback",
+	"redis": {
+		"session": {
+			"name": "op.sid",
+			"resave": false,
+			"saveUninitialized": true,
+			"cookie": {
+				"sameSite": "lax"
+			}
+		}
+	}
+}
