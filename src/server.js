@@ -1,4 +1,5 @@
 import 'source-map-support/register';
+import 'dotenv/config';
 import axios from 'axios';
 import express from 'express';
 import * as helmet from 'helmet';
