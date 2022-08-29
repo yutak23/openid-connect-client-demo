@@ -22,3 +22,9 @@ cf. https://code.visualstudio.com/docs/editor/debugging
 ```bash
 yarn build:prod
 ```
+
+## Needed env
+
+- CLIENT_ID
+- COOKIE_SECRET
+- ROLE_ARN

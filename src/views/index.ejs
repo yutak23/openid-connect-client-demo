@@ -26,7 +26,7 @@
 			<v-app-bar app clipped-left>
 				<v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
 				<v-toolbar-title>
-					認可フロー（Authorization Code Flow）のデモ
+					ID プロバイダーとフェデレーションのデモ
 				</v-toolbar-title>
 				<v-spacer></v-spacer>
 				<v-btn icon>
@@ -61,32 +61,34 @@
 			</v-navigation-drawer>
 
 			<v-main>
-				<v-container class="fill-height justify-center">
-					<v-card>
-						<form action="/begin" method="GET">
-							<v-card-title>
-								Google Calendarとの連携（認可リクエストを行う）
-							</v-card-title>
-							<v-card-text>
-								<p>（例として…）</p>
-								<p>
-									Google Calendarとの連携を行うには、連携をクリックしてください
-								</p>
-							</v-card-text>
-							<v-card-actions>
-								<v-spacer></v-spacer>
-								<v-btn type="submit" color="primary">
-									連携する（認可リクエスト送る）
-								</v-btn>
-							</v-card-actions>
-						</form>
-					</v-card>
+				<v-container>
+					<v-row>
+						<v-col cols="8">
+							<v-card>
+								<form action="/begin" method="GET">
+									<v-card-title>
+										Googleアカウントを利用したAWS利用（認証認可リクエストを行う）
+									</v-card-title>
+									<v-card-text>
+										<p>（例として…）</p>
+										<p>Googleアカウントでログイン</p>
+									</v-card-text>
+									<v-card-actions>
+										<v-spacer></v-spacer>
+										<v-btn type="submit" color="primary">
+											ログイン（認証認可リクエスト送る）
+										</v-btn>
+									</v-card-actions>
+								</form>
+							</v-card>
+						</v-col>
+					</v-row>
 				</v-container>
 			</v-main>
 			<v-footer app padless>
 				<v-col class="text-center" cols="12">
 					{{ new Date().getFullYear() }} —
-					<strong>Authorization Code Flow Demo</strong>
+					<strong>"Identity providers and federation" Demo</strong>
 				</v-col>
 			</v-footer>
 		</v-app>

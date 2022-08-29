@@ -1,24 +1,27 @@
 import 'source-map-support/register';
 import 'dotenv/config';
-import axios from 'axios';
 import express from 'express';
 import * as helmet from 'helmet';
 import config from 'config';
 import https from 'https';
 import fs from 'fs';
 import appRoot from 'app-root-path';
-import qs from 'qs';
-import camelcaseKeys from 'camelcase-keys';
 
 import expressSession from 'express-session';
 import connectRedis from 'connect-redis';
 import Redis from 'ioredis';
 
-import { generators } from 'openid-client';
+import { Issuer, generators } from 'openid-client';
+import jwt from 'jsonwebtoken';
+
+import { fromWebToken } from '@aws-sdk/credential-providers';
+import { LambdaClient, GetFunctionCommand } from '@aws-sdk/client-lambda';
 
 const callback = new URL(config.get('redirectUri'));
 
 const app = express();
+app.use(express.urlencoded({ extended: true }));
+
 const server =
 	callback.protocol === 'https:'
 		? https.createServer(
@@ -47,89 +50,89 @@ app.use(
 app.use(helmet.hidePoweredBy());
 app.use(helmet.xssFilter());
 
+Issuer.discover(config.get('discovery')).then((issuer) => {
+	const oidcClient = new issuer.Client({
+		client_id: process.env.CLIENT_ID,
+		redirect_uri: config.get('redirectUri'),
+		response_type: ['id_token']
+	});
+
+	app.locals.client = oidcClient;
+});
+
 app.get('/', (req, res) => {
 	res.render('./index.ejs');
 });
 
 app.get('/begin', async (req, res) => {
 	const { session } = req;
+	const { client } = req.app.locals;
 
-	const { data: openidConfig } = await axios.get(config.get('discovery'));
+	const nonce = generators.nonce();
+	session.nonce = nonce;
 
-	const state = generators.state();
-	const codeVerifier = generators.codeVerifier();
-	const codeChallenge = generators.codeChallenge(codeVerifier);
-	session.state = state;
-	session.codeVerifier = codeVerifier;
+	const uri = client.authorizationUrl({
+		scope: 'openid',
+		response_mode: 'form_post',
+		nonce
+	});
 
-	const params = {
-		client_id: process.env.CLIENT_ID,
-		response_type: 'code',
-		scope: config.get('authRequest.scopes').join(' '),
-		redirect_uri: config.get('redirectUri'),
-		state,
-		code_challenge: codeChallenge,
-		code_challenge_method: 'S256'
-	};
-
-	res.redirect(
-		`${openidConfig.authorization_endpoint}?${qs.stringify(params)}`
-	);
+	res.redirect(uri);
 });
 
-app.get('/oauth2/callback', async (req, res) => {
-	const {
-		session,
-		query: { code, state }
-	} = req;
-
-	if (state !== session.state) throw new Error('Invalid state.');
+app.post('/oidc/callback', async (req, res) => {
+	const { session } = req;
+	const { client } = req.app.locals;
 
 	try {
-		const { data: openidConfig } = await axios.get(config.get('discovery'));
+		const params = client.callbackParams(req);
+		const { id_token: idToken } = await client.callback(
+			config.get('redirectUri'),
+			params,
+			{
+				nonce: session.nonce
+			}
+		);
 
-		const params = new URLSearchParams();
-		params.append('client_id', process.env.CLIENT_ID);
-		params.append('client_secret', process.env.CLIENT_SECRET);
-		params.append('grant_type', 'authorization_code');
-		params.append('code', code);
-		params.append('redirect_uri', config.get('redirectUri'));
-		params.append('code_verifier', session.codeVerifier);
-
-		const { data } = await axios.post(openidConfig.token_endpoint, params);
-		const camelCaseData = camelcaseKeys(data);
+		console.log(jwt.decode(idToken, { complete: true }));
 
 		const regenerate = (oldSession) => {
 			return new Promise((resolve, reject) => {
 				oldSession.regenerate((err) => {
 					if (err) throw reject(err);
 					const { session: newSession } = req;
-					newSession.accessToken = camelCaseData.accessToken;
+					newSession.idToken = idToken;
 					resolve(newSession);
 				});
 			});
 		};
 		await regenerate(session);
-		res.render('./redirect.ejs', camelCaseData);
+
+		res.render('./redirect.ejs', { idToken });
 	} catch (error) {
 		res.end(error.message);
 	}
 });
 
-app.get('/calendarList', async (req, res) => {
+app.get('/getFunction', async (req, res) => {
 	const { session } = req;
 
 	try {
-		const { data } = await axios.get(
-			'https://www.googleapis.com/calendar/v3/users/me/calendarList',
-			{
-				headers: {
-					Authorization: `Bearer ${session.accessToken}`
-				}
-			}
-		);
+		const client = new LambdaClient({
+			region: 'ap-northeast-1',
+			credentials: fromWebToken({
+				roleArn: process.env.ROLE_ARN,
+				webIdentityToken: session.idToken,
+				roleSessionName: 'test_session'
+			})
+		});
+		const command = new GetFunctionCommand({
+			FunctionName: 'rds-proxy-lambda-func'
+		});
+		const response = await client.send(command);
+		console.log(response);
 
-		res.status(200).json(data);
+		res.status(200).json(response);
 	} catch (error) {
 		console.log(error);
 		res.status(500).json(error.message);

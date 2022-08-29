@@ -26,7 +26,7 @@
 			<v-app-bar app clipped-left>
 				<v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
 				<v-toolbar-title>
-					認可フロー（Authorization Code Flow）のデモ
+					ID プロバイダーとフェデレーションのデモ
 				</v-toolbar-title>
 				<v-spacer></v-spacer>
 				<v-btn icon>
@@ -66,7 +66,7 @@
 						<v-col cols="8">
 							<v-card>
 								<v-card-title>
-									Google Calendarへのアクセストークン
+									Google OIDCから受け取ったIDトークン
 								</v-card-title>
 								<v-card-text>
 									<v-simple-table>
@@ -79,20 +79,8 @@
 											</thead>
 											<tbody>
 												<tr>
-													<td>アクセストークン（access_token）</td>
-													<td><%= accessToken %></td>
-												</tr>
-												<tr>
-													<td>有効期間（expires_in）（単位は秒）</td>
-													<td><%= expiresIn %></td>
-												</tr>
-												<tr>
-													<td>スコープ（scope）</td>
-													<td><%= scope %></td>
-												</tr>
-												<tr>
-													<td>トークン種別（token_type）</td>
-													<td><%= tokenType %></td>
+													<td>IDトークン（id_token）</td>
+													<td><%= idToken %></td>
 												</tr>
 											</tbody>
 										</template>
@@ -100,19 +88,56 @@
 								</v-card-text>
 								<v-card-actions>
 									<v-spacer></v-spacer>
-									<v-btn color="primary" @click="getCalendarList">
-										実際にAPIを実行
+									<v-btn color="primary" @click="getFunction">
+										実際にAWSを操作
 									</v-btn>
 								</v-card-actions>
 							</v-card>
 						</v-col>
-						<v-col cols="8" v-if="items">
+						<v-col cols="8" v-if="resData">
 							<v-card>
-								<v-card-title> CalendarList: listの結果 </v-card-title>
+								<v-card-title> getFunctionの結果 </v-card-title>
 								<v-card-text>
-									<p v-for="item of items">
-										{{ item.summary }}：{{ item.description }}
-									</p>
+									<v-simple-table>
+										<template v-slot:default>
+											<thead>
+												<tr>
+													<th class="text-left">key</th>
+													<th class="text-left">value</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr>
+													<td>$metadata.httpStatusCode</td>
+													<td>{{ resData.$metadata.httpStatusCode }}</td>
+												</tr>
+												<tr>
+													<td>$metadata.requestId</td>
+													<td>{{ resData.$metadata.requestId }}</td>
+												</tr>
+												<tr>
+													<td>Configuration.CodeSize</td>
+													<td>{{ resData.Configuration.CodeSize }}</td>
+												</tr>
+												<tr>
+													<td>Configuration.FunctionName</td>
+													<td>{{ resData.Configuration.FunctionName }}</td>
+												</tr>
+												<tr>
+													<td>Configuration.Handler</td>
+													<td>{{ resData.Configuration.Handler }}</td>
+												</tr>
+												<tr>
+													<td>Configuration.PackageType</td>
+													<td>{{ resData.Configuration.PackageType }}</td>
+												</tr>
+												<tr>
+													<td>Configuration.State</td>
+													<td>{{ resData.Configuration.State }}</td>
+												</tr>
+											</tbody>
+										</template>
+									</v-simple-table>
 								</v-card-text>
 							</v-card>
 						</v-col>
@@ -136,15 +161,15 @@
 				data: () => ({
 					drawer: false,
 					dumyMenus: ['Foo', 'Bar', 'Fizz', 'Buzz'],
-					items: null
+					resData: null
 				}),
 				methods: {
-					async getCalendarList() {
+					async getFunction() {
 						try {
-							const response = await fetch('/calendarList', { method: 'GET' });
-							const { items } = await response.json();
-							this.items = items;
-							console.log(this.items);
+							const response = await fetch('/getFunction', { method: 'GET' });
+							const data = await response.json();
+							this.resData = data;
+							console.log(this.resData);
 						} catch (error) {
 							console.log(error);
 						}
