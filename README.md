@@ -27,4 +27,4 @@ yarn build:prod
 
 - CLIENT_ID
 - COOKIE_SECRET
-- ROLE_ARN
+- ROLE_ARN=arn:aws:iam::${AWS::AccountId}:role/aws-identity-providers-federation-test-role
