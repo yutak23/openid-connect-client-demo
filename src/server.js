@@ -72,7 +72,7 @@ app.get('/begin', async (req, res) => {
 	session.nonce = nonce;
 
 	const uri = client.authorizationUrl({
-		scope: 'openid',
+		scope: config.get('authRequest.scopes').join(' '),
 		response_mode: 'form_post',
 		nonce
 	});
