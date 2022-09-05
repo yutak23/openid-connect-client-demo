@@ -3,14 +3,15 @@
 	"authRequest": {
 		"scopes": ["openid"]
 	},
-	"redirectUri": "https://example.com:8080/oidc/callback",
+	"redirectUri": "https://example.com:443/oidc/callback",
 	"redis": {
 		"session": {
 			"name": "op.sid",
 			"resave": false,
 			"saveUninitialized": true,
 			"cookie": {
-				"sameSite": false
+				"sameSite": false,
+				"secure": true
 			}
 		}
 	}

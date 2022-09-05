@@ -3,8 +3,6 @@ import 'dotenv/config';
 import express from 'express';
 import * as helmet from 'helmet';
 import config from 'config';
-import https from 'https';
-import fs from 'fs';
 import appRoot from 'app-root-path';
 
 import expressSession from 'express-session';
@@ -17,22 +15,10 @@ import jwt from 'jsonwebtoken';
 import { fromWebToken } from '@aws-sdk/credential-providers';
 import { LambdaClient, GetFunctionCommand } from '@aws-sdk/client-lambda';
 
-const callback = new URL(config.get('redirectUri'));
-
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 
-const server =
-	callback.protocol === 'https:'
-		? https.createServer(
-				{
-					key: fs.readFileSync('./ssl/server.key'),
-					cert: fs.readFileSync('./ssl/server.crt')
-				},
-				app
-		  )
-		: app;
-
+app.set('trust proxy', 1);
 app.set('view engine', 'ejs');
 app.set('views', appRoot.resolve('src/views'));
 
@@ -139,17 +125,7 @@ app.get('/getFunction', async (req, res) => {
 	}
 });
 
-server.listen(
-	callback.port || (callback.protocol === 'https:' ? 443 : 80),
-	// '127.0.0.1',
-	() => {
-		console.log(
-			`Server Start with ${callback.protocol.replace(':', '').toUpperCase()}`
-		);
-		console.log(
-			`Endpoint is ${callback.protocol}//127.0.0.1:${
-				callback.port || (callback.protocol === 'https:' ? 443 : 80)
-			}${callback.pathname}`
-		);
-	}
-);
+app.listen(3000, () => {
+	console.log(`Server Start with HTTP`);
+	console.log(`Endpoint is http://127.0.0.1:3000`);
+});
